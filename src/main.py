@@ -1,9 +1,11 @@
 from extract import fetch_all_jobs
-from load import laod_raw_pages
+from database import create_table
+from load import load_raw_pages
 
 def main():
+    create_table()
     pages = fetch_all_jobs()
-    laod_raw_pages(pages)
+    load_raw_pages(pages)
 
 if __name__ == "__main__":
     main()

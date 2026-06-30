@@ -26,12 +26,13 @@ def fetch_page(page):
     return response.json()
 
 def fetch_all_jobs():
-    """Fetch all available job result pages, up to a max of 5 pages, for the configured search query."""
+    """Fetch all available job result pages, up to a min of 5 pages, for the configured search query."""
+    print(f"Fetching page 1")
     first_page = fetch_page(1)
 
     total_count = int(first_page.get("count", 0))
     total_pages = ceil(total_count/RESULTS_PER_PAGE)
-    total_pages = max(total_pages, 5)
+    total_pages = min(total_pages, 5)
 
     pages = [first_page]
 
