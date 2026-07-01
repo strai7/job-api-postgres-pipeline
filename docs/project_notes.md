@@ -26,18 +26,18 @@ Reason:
 - Keeps the project setup separate from my machine
 - More realistic than relying on a manually installed local database
 
-## Learning for Bugs
+## Bugs and Learnings
 
 ### psycopg2 parameter issue
 
-I had an issue where psycopg2 did not treat a single value as a sequence because the tuple did not have a trailing comma.
+An issue where psycopg2 did not treat a single value as a sequence because the tuple did not have a trailing comma.
 
 Example:
 
 ```python
-(Json(response))
+(Json(response),)
 ```
 
 ### jsonb in PostgreSQL
 
-Data is stored as `jsonb` by PostgreSQL, important to note how databases decided to store responses so right function can be used.
+Data is stored as `jsonb` by PostgreSQL, hence important to note how databases decided to store responses so right function can be used.
