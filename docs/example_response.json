@@ -1,0 +1,49 @@
+{
+    "count": 2, 
+    "results": [
+        {
+            "id": "sample-job-01",
+            "title": "Analytics Engineer", 
+            "company": {
+                "display_name": "Example Analytics Ltd"
+            },
+            "created": "2026-11-11T00:00:01Z",
+            "category": {
+                "tag": "it-jobs",
+                "label": "IT Jobs"
+            },
+            "location": {
+                "area":"Manchester, UK",
+                "display_name": "Manchester, UK"
+            },
+            "salary_max": 50000.00,
+            "salary_min": 40000.00,
+            "description": "Example job description for an Analytics Engineer position.",
+            "redirect_url": "https://example.com/jobs/sample-job-001",
+            "contract_time": "full_time",
+            "salary_is_predicted": "1"
+        }, 
+        {
+            "id": "sample-job-02",
+            "title": "Data Engineer",
+            "company": {
+                "display_name": "Synthetic Recruitment Agency" 
+            },
+            "created": "2026-07-02T22:22:02Z",
+            "category": {
+                "tag": "it-jobs",
+                "label": "IT Jobs"
+            },
+            "location": {
+                "area": "London, UK",
+                "display_name": "Soho, London"
+            },
+            "salary_max": 90000.00,
+            "salary_min": 80000.00,
+            "description": "Example job description for a Data Engineer position.",
+            "redirect_url": "https://example.com/jobs/sample-job-002",
+            "contract_time": "full_time",
+            "salary_is_predicted": "0"
+        }
+    ]
+}
