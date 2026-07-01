@@ -17,6 +17,15 @@ The data comes from the Adzuna Job Search API.
 
 The API returns paginated JSON responses containing job posting data such as job title, company, location, category, salary information, description, and redirect URLs.
 
+## Data attribution
+
+This project uses data from The Adzuna API for personal learning and portfolio purposes.
+
+Adzuna is the source of the salary and vacancy data used in this project.  
+Source: The Adzuna API - https://www.adzuna.co.uk/
+
+Raw API response data is not included in this repository. The pipeline can be run locally by users with their own Adzuna API credentials.
+
 ## How does the pipeline work?
 
 The pipeline follows a simple ELT-style process:
