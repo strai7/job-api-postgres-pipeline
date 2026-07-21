@@ -1,7 +1,10 @@
 import requests
 from math import ceil
+import logging
 
-from config import BASE_URL, SEARCH_URL, APP_ID, APP_KEY, QUERY, RESULTS_PER_PAGE
+from config import BASE_URL, SEARCH_URL, APP_ID, APP_KEY, QUERY, RESULTS_PER_PAGE, LOGGING_ROOT
+
+logger = logging.getLogger(f"{LOGGING_ROOT}.extract")
 
 def build_request(page):
     """Build the ADzuna API URL and query parameters for a single results page."""
@@ -27,7 +30,11 @@ def fetch_page(page):
 
 def fetch_all_jobs():
     """Fetch all available job result pages, up to a min of 5 pages, for the configured search query."""
-    print(f"Fetching page 1")
+
+    # Set up logging
+    logger.info("Extraction process started: Fetching job results from the Adzuna API")
+    logger.info("Fetching first page from the Adzuna API")
+
     first_page = fetch_page(1)
 
     total_count = int(first_page.get("count", 0))
@@ -37,7 +44,8 @@ def fetch_all_jobs():
     pages = [first_page]
 
     for page_number in range(2, total_pages+1):
-        print(f"Fetching page {page_number} of {total_pages}")
+        logger.info(f"Fetching page {page_number} of {total_pages}")
         pages.append(fetch_page(page_number))
 
+    logger.info(f"Extraction process completed: Fetched {total_pages} pages of job results from the Adzuna API")
     return pages

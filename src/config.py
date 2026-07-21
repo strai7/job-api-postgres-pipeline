@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,3 +26,7 @@ DB_CONFIG = {
 # Database schema and table settings for storing raw API response pages
 DB_SCHEMA = os.getenv("DB_SCHEMA")
 DB_TABLE = os.getenv("DB_TABLE")
+
+# Logging configuration settings
+LOGGING_ROOT = 'job_api_pipeline'
+LOGS_DIR = Path(__file__).resolve().parent.parent / "logs"
