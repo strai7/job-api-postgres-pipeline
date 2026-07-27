@@ -21,6 +21,8 @@ def build_request(page):
 
 def fetch_page(page):
     """Fetch a single page of job results from ther Adzuna API."""
+
+    # Build the request URL and parameters for the specified page
     url, params = build_request(page)
 
     response =  requests.get(url, params=params, timeout=10)

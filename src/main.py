@@ -1,5 +1,5 @@
 from extract import fetch_all_jobs
-from database import create_table
+from database import reset_table
 from load import load_raw_pages
 from logging_config import setup_logging
 from config import LOGGING_ROOT
@@ -14,9 +14,14 @@ def main():
     logger.info("Starting job API pipeline")
 
     # Create the table, fetch all jobs, and load them into the database
-    create_table()
-    pages = fetch_all_jobs()
-    load_raw_pages(pages)
+    try:
+        reset_table()
+        pages = fetch_all_jobs()
+        load_raw_pages(pages)
+
+    except Exception as e:
+        logger.exception(f"An error occurred during the job API pipeline execution: {e}")
+        raise
 
     logger.info("Job API pipeline completed successfully")
 
