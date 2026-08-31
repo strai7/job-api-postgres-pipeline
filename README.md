@@ -1,5 +1,11 @@
 # job-api-postgres-pipeline
 
+## Project status
+
+Version 0.1 is a reproducible full-refresh ELT pipeline. Each run recreates the
+raw table, loads up to five API response pages, and rebuilds the staging views.
+Incremental and idempotent loading is planned for the next version.
+
 ## What does this project do?
 
 This project is a Python data pipeline that extracts job data from the Adzuna API, loads the data into a local PostgreSQL database, and applies SQL transformations to make the data easier to query and analyse.
@@ -41,6 +47,76 @@ The pipeline follows a simple ELT-style process:
 The data is stored in a local PostgreSQL database.
 
 Docker is used to run the PostgreSQL database locally, making it easier to recreate the database environment when needed.
+
+The database is organised into three schemas:
+
+- `raw` stores the source API pages as JSONB, with an ingestion timestamp.
+- `stg` contains views that expand, extract, and type the job fields.
+- `mart` is reserved for future analytical outputs.
+
+## Local setup
+
+### Prerequisites
+
+- Python 3.12 or later
+- Docker with Docker Compose
+- Adzuna API credentials
+
+### Install the project
+
+```bash
+git clone https://github.com/strai7/job-api-postgres-pipeline.git
+cd job-api-postgres-pipeline
+python -m venv .venv
+```
+
+Activate the virtual environment:
+
+```bash
+# macOS/Linux
+source .venv/bin/activate
+
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+```
+
+Install the dependencies:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Copy the environment template to `.env`, then add your own Adzuna credentials.
+The database defaults in the template match `compose.yaml`.
+
+Start PostgreSQL:
+
+```bash
+docker compose up -d
+```
+
+Run the complete pipeline from the repository root:
+
+```bash
+python -m src.main
+```
+
+The pipeline validates its configuration before connecting, loads the raw API
+pages, applies the SQL files in filename order, and writes timestamped logs to
+the local `logs` directory.
+
+## Run the tests
+
+Install the development dependencies and execute the test suite:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+```
+
+The tests do not call the live Adzuna API or require a running PostgreSQL
+database. API responses are mocked so request and pagination behaviour can be
+verified deterministically.
 
 ## What SQL transformations did you create?
 
@@ -87,12 +163,12 @@ This project helped me understand why ELT can be useful.
 
 By loading the API response first and applying transformations later, the ingestion step stays simpler and the raw source data is preserved for debugging or future transformation changes.
 
-## What would I improve in v2?
+## What would I improve in v0.2?
 
 In a future version, I would improve the project by:
 
 - Adding incremental loading so the pipeline only loads new or changed job records
-- Adding more robust error handling and logging
-- Adding tests for the API extraction and transformation logic
+- Adding database integration tests for loading and SQL transformations
+- Recording pipeline run IDs and row-count metrics
 - Loading additional datasets to make the project more useful analytically
 - Adding a scheduled run so the pipeline can update automatically

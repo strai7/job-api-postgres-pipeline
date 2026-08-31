@@ -1,7 +1,7 @@
 import logging
-import os
-from config import LOGS_DIR
+from .config import LOGS_DIR
 from datetime import datetime
+
 
 def setup_logging():
     """Configure logging for the pipeline."""
@@ -39,4 +39,3 @@ def setup_logging():
 
     # Prevent log messages from being propagated to the root logger
     logger.propagate = False
-

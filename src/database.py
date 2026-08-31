@@ -1,10 +1,14 @@
 import psycopg2
+from psycopg2 import sql
 import logging
 from contextlib import contextmanager
+from pathlib import Path
 
-from config import DB_CONFIG, DB_SCHEMA, DB_TABLE, LOGGING_ROOT
+from .config import DB_CONFIG, DB_SCHEMA, DB_TABLE, LOGGING_ROOT
 
 logger = logging.getLogger(f"{LOGGING_ROOT}.database")
+SQL_DIR = Path(__file__).resolve().parent.parent / "sql"
+
 
 @contextmanager
 def get_connection():
@@ -31,18 +35,53 @@ def reset_table():
     # Set up logging
     logger.info(f"Resetting table {DB_SCHEMA}.{DB_TABLE} for storing raw API response pages")
 
-    # Reset the table query with a JSONB column for storing raw API response pages
-    ## Currently dropping table during development, but in production this should be changed to a CREATE TABLE IF NOT EXISTS statement
-    reset_table_query = f"""
-        DROP TABLE IF EXISTS {DB_SCHEMA}.{DB_TABLE};
-        CREATE TABLE {DB_SCHEMA}.{DB_TABLE} (
-            page_results JSONB NOT NULL
-        )
-    """
-
-    # Execute the create table query
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(reset_table_query)
+            cur.execute(
+                sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(
+                    sql.Identifier(DB_SCHEMA)
+                )
+            )
+            cur.execute(
+                sql.SQL("DROP TABLE IF EXISTS {}.{} CASCADE").format(
+                    sql.Identifier(DB_SCHEMA),
+                    sql.Identifier(DB_TABLE),
+                )
+            )
+            cur.execute(
+                sql.SQL(
+                    """
+                    CREATE TABLE {}.{} (
+                        raw_page_id BIGSERIAL PRIMARY KEY,
+                        page_results JSONB NOT NULL,
+                        loaded_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """
+                ).format(
+                    sql.Identifier(DB_SCHEMA),
+                    sql.Identifier(DB_TABLE),
+                )
+            )
 
     logger.info(f"Table {DB_SCHEMA}.{DB_TABLE} reset successfully")
+
+
+def apply_transformations():
+    """Create the staging schemas and views from the versioned SQL files."""
+
+    sql_files = sorted(SQL_DIR.glob("*.sql"))
+    logger.info("Applying %s SQL transformation files", len(sql_files))
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            for sql_file in sql_files:
+                logger.info("Applying SQL file %s", sql_file.name)
+                statement = sql.SQL(sql_file.read_text(encoding="utf-8")).format(
+                    raw_table=sql.SQL("{}.{}").format(
+                        sql.Identifier(DB_SCHEMA),
+                        sql.Identifier(DB_TABLE),
+                    )
+                )
+                cur.execute(statement)
+
+    logger.info("SQL transformations applied successfully")
