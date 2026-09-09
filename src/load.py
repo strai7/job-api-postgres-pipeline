@@ -11,7 +11,7 @@ def load_raw_pages(pages):
 
     logger.info(f"Loading process started: Loading raw API response pages into Postgres table {DB_SCHEMA}.{DB_TABLE}")
 
-    insert_query = sql.SQL("INSERT INTO {}.{} (page_results) (%s)").format(
+    insert_query = sql.SQL("INSERT INTO {}.{} (page_results) VALUES (%s)").format(
         sql.Identifier(DB_SCHEMA),
         sql.Identifier(DB_TABLE),
     )
