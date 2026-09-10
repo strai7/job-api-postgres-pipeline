@@ -2,12 +2,15 @@ import requests
 from math import ceil
 import logging
 
-from config import BASE_URL, SEARCH_URL, APP_ID, APP_KEY, QUERY, RESULTS_PER_PAGE, LOGGING_ROOT
+from .config import BASE_URL, SEARCH_URL, APP_ID, APP_KEY, QUERY, RESULTS_PER_PAGE, LOGGING_ROOT
 
 logger = logging.getLogger(f"{LOGGING_ROOT}.extract")
 
 def build_request(page):
     """Build the ADzuna API URL and query parameters for a single results page."""
+    if not isinstance(page, int) or page < 1:
+        raise ValueError("Page number must be a positive integer")
+
     url = f"{BASE_URL}{SEARCH_URL}{page}"
 
     params = {
@@ -20,18 +23,18 @@ def build_request(page):
     return url, params
 
 def fetch_page(page):
-    """Fetch a single page of job results from ther Adzuna API."""
+    """Fetch a single page of job results from the Adzuna API."""
 
     # Build the request URL and parameters for the specified page
     url, params = build_request(page)
 
-    response =  requests.get(url, params=params, timeout=10)
+    response = requests.get(url, params=params, timeout=10)
     response.raise_for_status()
 
     return response.json()
 
 def fetch_all_jobs():
-    """Fetch all available job result pages, up to a min of 5 pages, for the configured search query."""
+    """Fetch up to 5 pages of job results for configured search query from the Adzuna API."""
 
     # Set up logging
     logger.info("Extraction process started: Fetching job results from the Adzuna API")
@@ -41,11 +44,12 @@ def fetch_all_jobs():
 
     total_count = int(first_page.get("count", 0))
     total_pages = ceil(total_count/RESULTS_PER_PAGE)
+    total_pages = max(total_pages, 1)  # Ensure at least one page is fetched
     total_pages = min(total_pages, 5)
 
     pages = [first_page]
 
-    for page_number in range(2, total_pages+1):
+    for page_number in range(2, total_pages + 1):
         logger.info(f"Fetching page {page_number} of {total_pages}")
         pages.append(fetch_page(page_number))
 

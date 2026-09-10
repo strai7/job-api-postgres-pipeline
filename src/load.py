@@ -1,6 +1,7 @@
 from psycopg2.extras import Json
-from config import DB_SCHEMA, DB_TABLE, LOGGING_ROOT
-from database import get_connection
+from psycopg2 import sql
+from .config import DB_SCHEMA, DB_TABLE, LOGGING_ROOT
+from .database import get_connection
 import logging
 
 logger = logging.getLogger(f"{LOGGING_ROOT}.load")
@@ -10,10 +11,10 @@ def load_raw_pages(pages):
 
     logger.info(f"Loading process started: Loading raw API response pages into Postgres table {DB_SCHEMA}.{DB_TABLE}")
 
-    insert_query = f"""
-        INSERT INTO {DB_SCHEMA}.{DB_TABLE} (page_results)
-        VALUES (%s)
-    """
+    insert_query = sql.SQL("INSERT INTO {}.{} (page_results) VALUES (%s)").format(
+        sql.Identifier(DB_SCHEMA),
+        sql.Identifier(DB_TABLE),
+    )
 
     logger.info(f"Establishing connection to the Postgres database and loading raw API response pages into table {DB_SCHEMA}.{DB_TABLE}")
     with get_connection() as conn:
