@@ -4,10 +4,10 @@ import logging
 from contextlib import contextmanager
 from pathlib import Path
 
-from config import DB_CONFIG, DB_SCHEMA, DB_TABLE, LOGGING_ROOT
+from .config import DB_CONFIG, DB_SCHEMA, DB_TABLE, LOGGING_ROOT
 
 logger = logging.getLogger(f"{LOGGING_ROOT}.database")
-SQL_DIR = Path(__file__).resolve().parent / "sql"
+SQL_DIR = Path(__file__).resolve().parent.parent / "sql"
 
 @contextmanager
 def get_connection():
@@ -43,6 +43,16 @@ def reset_table():
             )
             cur.execute(
                 sql.SQL("DROP TABLE IF EXISTS {}.{} CASCADE").format(
+                    sql.Identifier(DB_SCHEMA),
+                    sql.Identifier(DB_TABLE),
+                )
+            )
+            cur.execute(
+                sql.SQL("""
+                    CREATE TABLE {}.{} (
+                        page_results JSONB
+                    )
+                """).format(
                     sql.Identifier(DB_SCHEMA),
                     sql.Identifier(DB_TABLE),
                 )
