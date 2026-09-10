@@ -50,7 +50,7 @@ def reset_table():
             cur.execute(
                 sql.SQL("""
                     CREATE TABLE {}.{} (
-                        page_results JSONB
+                        page_results JSONB NOT NULL
                     )
                 """).format(
                     sql.Identifier(DB_SCHEMA),
