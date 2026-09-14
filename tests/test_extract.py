@@ -8,7 +8,6 @@ def test_build_request_returns_expected_url_and_params(monkeypatch):
     monkeypatch.setattr(extract, "APP_ID", "test_id")
     monkeypatch.setattr(extract, "APP_KEY", "test_key")
 
-    # Call the build_request function with a sample page number
     url, params = extract.build_request(3)
 
     # Check that the returned URL and parameters match the expected values
@@ -36,7 +35,6 @@ def test_fetch_page_uses_timeout_and_returns_json(monkeypatch):
     request_get = Mock(return_value=response)
     monkeypatch.setattr(extract.requests, "get", request_get)
 
-    # Call the fetch_page function with a sample page number
     result = extract.fetch_page(1)
 
     # Check that the request and response methods were called the correct number of times with the expected arguments 
@@ -59,9 +57,7 @@ def test_fetch_all_jobs_fetches_result_count_for_pagination(monkeypatch):
     # Patch fetch_page function in the extract module with the fake_fetch_page function
     monkeypatch.setattr(extract, "fetch_page", fake_fetch_page)
 
-    # Call fetch_all_jobs function
     pages = extract.fetch_all_jobs()
-
 
     # Assert that correct number of pages were requested and appended to the pages list
     assert requested_pages == [1, 2, 3]
