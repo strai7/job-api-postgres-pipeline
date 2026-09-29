@@ -1,5 +1,5 @@
 from .extract import fetch_all_jobs
-from .database import reset_table, apply_transformations
+from .database import reset_table, validate_sql_files, apply_transformations
 from .load import load_raw_pages
 from .logging_config import setup_logging
 from .config import LOGGING_ROOT, validate_config
@@ -16,6 +16,7 @@ def main():
     # Create the table, fetch and load all jobs, then build the staging views
     try:
         validate_config()
+        validate_sql_files()
         reset_table()
         pages = fetch_all_jobs()
         load_raw_pages(pages)
