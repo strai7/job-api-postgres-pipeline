@@ -149,7 +149,7 @@ def upsert_jobs():
     if not sql_files:
         raise ValueError(f"No sql upsert files configured. Directory:{SQL_DIR}. Files: {UPSERT_FILES}")
 
-    logger.info(f"creating core jobs table and upserting jobs from typed table")
+    logger.info(f"Creating core jobs table and upserting jobs from typed table")
 
     with get_connection() as conn:
         with conn.cursor() as cur:
