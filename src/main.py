@@ -1,5 +1,5 @@
 from .extract import fetch_all_jobs
-from .database import reset_table, validate_sql_files, apply_transformations
+from .database import reset_table, validate_sql_files, apply_transformations, validate_staged_jobs
 from .load import load_raw_pages
 from .logging_config import setup_logging
 from .config import LOGGING_ROOT, validate_config
@@ -20,6 +20,7 @@ def main():
         reset_table()
         pages = fetch_all_jobs()
         load_raw_pages(pages)
+        validate_staged_jobs()
         apply_transformations()
 
     except Exception as e:

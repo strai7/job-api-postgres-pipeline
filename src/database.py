@@ -10,6 +10,7 @@ from .sql_pipeline_config import TRANSFORMATION_FILES, UPSERT_FILES
 logger = logging.getLogger(f"{LOGGING_ROOT}.database")
 SQL_DIR = Path(__file__).resolve().parent.parent / "sql"
 
+
 @contextmanager
 def get_connection():
     """Create a connection to the Postgres database."""
@@ -28,6 +29,7 @@ def get_connection():
     finally:
         conn.close()
         logger.info("Connection to the Postgres database closed")
+
 
 def reset_table():
     """Reset the table for storing raw API response pages."""
@@ -60,6 +62,7 @@ def reset_table():
             )
 
     logger.info(f"Table {DB_SCHEMA}.{DB_TABLE} reset successfully")
+
 
 def validate_sql_files():
     """Validate that all required SQL files exist in the sql directory."""
@@ -95,6 +98,49 @@ def apply_transformations():
                 cur.execute(statement)
 
     logger.info("SQL transformations applied successfully")
+
+
+def validate_staged_jobs():
+    """ Validate staged job ids before upserting into core jobs table."""
+
+    logger.info("Validating staged jobs for NULL, blank, or duplicate job IDs")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+
+            # Count NULL job ids
+            cur.execute("""
+                SELECT COUNT(*)
+                FROM stg.adzuna_jobs_typed
+                WHERE job_id IS NULL
+                   OR TRIM(job_id) = '';
+            """)
+
+            invalid_job_ids = cur.fetchone()[0]
+
+            if invalid_job_ids > 0:
+                raise ValueError(
+                    f"Staged data contains {invalid_job_ids} NULL or blank job IDs"
+                )
+
+            # Count duplicate job ids
+            cur.execute("""
+                SELECT COUNT(*)
+                FROM (
+                    SELECT job_id
+                    FROM stg.adzuna_jobs_typed
+                    GROUP BY job_id
+                    HAVING COUNT(*) > 1
+                ) AS duplicate_ids;
+            """)
+
+            duplicate_job_ids = cur.fetchone()[0]
+
+            if duplicate_job_ids > 0:
+                raise ValueError(
+                    f"Staged data contains {duplicate_job_ids} duplicated job IDs"
+                )
+
 
 def upsert_jobs():
 
