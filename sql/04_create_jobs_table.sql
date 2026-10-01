@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS core.jobs (
+    job_id TEXT PRIMARY KEY,
+    job_title TEXT,
+    description TEXT,
+    redirect_url TEXT,
+    adref TEXT,
+    company_name TEXT,
+    company_area TEXT,
+    location_name TEXT,
+    location_area TEXT,
+    category_tag TEXT,
+    category_label TEXT,
+    contract_type TEXT,
+    contract_time TEXT,
+    salary_min NUMERIC,
+    salary_max NUMERIC,
+    salary_is_predicted BOOLEAN,
+    created TIMESTAMPTZ,
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION
+);
