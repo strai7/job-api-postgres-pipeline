@@ -219,3 +219,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Airflow local runtime
+orchestration/.env
+orchestration/logs/
+orchestration/config/airflow.cfg
