@@ -1,5 +1,4 @@
 import logging
-import os
 from .config import LOGS_DIR
 from datetime import datetime
 

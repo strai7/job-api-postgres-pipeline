@@ -22,6 +22,7 @@ def build_request(page):
 
     return url, params
 
+
 def fetch_page(page):
     """Fetch a single page of job results from the Adzuna API."""
 
@@ -32,6 +33,7 @@ def fetch_page(page):
     response.raise_for_status()
 
     return response.json()
+
 
 def fetch_all_jobs():
     """Fetch up to 5 pages of job results for configured search query from the Adzuna API."""

@@ -5,7 +5,6 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from .config import DB_CONFIG, DB_SCHEMA, DB_TABLE, LOGGING_ROOT
-from .sql_pipeline_config import TRANSFORMATION_FILES, UPSERT_FILES
 
 logger = logging.getLogger(f"{LOGGING_ROOT}.database")
 SQL_DIR = Path(__file__).resolve().parent.parent / "sql"
@@ -64,24 +63,25 @@ def reset_table():
     logger.info(f"Table {DB_SCHEMA}.{DB_TABLE} reset successfully")
 
 
-def validate_sql_files():
+def validate_sql_files(sql_files):
     """Validate that all required SQL files exist in the sql directory."""
 
     logger.info(f"Validating existence of required SQL files in directory: {SQL_DIR}")
-    for filename in TRANSFORMATION_FILES + UPSERT_FILES:
+
+    for filename in sql_files:
         sql_file = SQL_DIR / filename
         if not sql_file.is_file():
             raise FileNotFoundError(f"Required SQL file not found: {sql_file}")
 
-def apply_transformations():
+def apply_transformations(transform_files):
     """Creates the staging schemas and views from this versioned SQL files."""
 
     # Get a list of all SQL files in the sql directory and sort them by name
-    transform_files = [SQL_DIR / file_name for file_name in TRANSFORMATION_FILES]
+    transform_files = [SQL_DIR / file_name for file_name in transform_files]
     logger.info(f"Applying {len(transform_files)} SQL transformation files")
 
     if not transform_files:
-        raise ValueError(f"No sql transformation files configured. Directory:{SQL_DIR}. Files: {TRANSFORMATION_FILES}")
+        raise ValueError(f"No sql transformation files configured. Directory:{SQL_DIR}. Files: {transform_files}")
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -142,12 +142,12 @@ def validate_staged_jobs():
                 )
 
 
-def upsert_jobs():
+def upsert_jobs(upsert_files):
 
-    sql_files = [SQL_DIR / file_name for file_name in UPSERT_FILES]
+    sql_files = [SQL_DIR / file_name for file_name in upsert_files]
 
     if not sql_files:
-        raise ValueError(f"No sql upsert files configured. Directory:{SQL_DIR}. Files: {UPSERT_FILES}")
+        raise ValueError(f"No sql upsert files configured. Directory:{SQL_DIR}. Files: {upsert_files}")
 
     logger.info(f"Creating core jobs table and upserting jobs from typed table")
 

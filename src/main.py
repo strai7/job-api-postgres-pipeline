@@ -3,6 +3,7 @@ from .database import reset_table, validate_sql_files, apply_transformations, va
 from .load import load_raw_pages
 from .logging_config import setup_logging
 from .config import LOGGING_ROOT, validate_config
+from .pipeline import TRANSFORMATION_FILES, UPSERT_FILES
 import logging
 
 logger = logging.getLogger(f"{LOGGING_ROOT}.main")
@@ -12,18 +13,18 @@ def main():
     # Set up logging
     setup_logging()
     logger.info("Starting job API pipeline")
+    sql_files = TRANSFORMATION_FILES + UPSERT_FILES
 
     # Create the table, fetch and load all jobs, then build the staging views
     try:
         validate_config()
-        validate_sql_files()
+        validate_sql_files(sql_files)
         reset_table()
         pages = fetch_all_jobs()
         load_raw_pages(pages)
-        apply_transformations()
+        apply_transformations(TRANSFORMATION_FILES)
         validate_staged_jobs()
-        upsert_jobs()
-    
+        upsert_jobs(UPSERT_FILES)
 
     except Exception as e:
         logger.exception(f"An error occurred during the job API pipeline execution: {e}")
