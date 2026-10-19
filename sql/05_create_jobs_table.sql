@@ -17,5 +17,6 @@ CREATE TABLE IF NOT EXISTS core.jobs (
     salary_is_predicted BOOLEAN,
     created TIMESTAMPTZ,
     latitude DOUBLE PRECISION,
-    longitude DOUBLE PRECISION
+    longitude DOUBLE PRECISION,
+    ingestion_timestamp TIMESTAMP
 );

@@ -27,9 +27,10 @@ DB_CONFIG = {
 DB_SCHEMA = os.getenv("DB_SCHEMA", "raw")
 DB_TABLE = os.getenv("DB_TABLE", "adzuna_jobs")
 
-# Logging configuration settings
+# Logging and file path settings for the job API Postgres pipeline
 LOGGING_ROOT = 'job_api_pipeline'
 LOGS_DIR = Path(__file__).resolve().parent.parent / "logs"
+SQL_DIR = Path(__file__).resolve().parent.parent / "sql"
 
 def validate_config():
     """ Fail fast if any required configuration is missing. """
@@ -47,4 +48,17 @@ def validate_config():
     missing_vars = [var for var, value in env_vars.items() if not value]
 
     if missing_vars:
-        raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")  
+        raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+
+# SQL Pipeline Stages
+
+TRANSFORMATION_FILES = [
+    "02_stg_adzuna_jobs_json.sql",
+    "03_stg_adzuna_jobs_extracted.sql",
+    "04_stg_adzuna_jobs_typed.sql",
+]
+
+UPSERT_FILES = [
+    "05_create_jobs_table.sql",
+    "06_upsert_core_jobs_table.sql",
+]

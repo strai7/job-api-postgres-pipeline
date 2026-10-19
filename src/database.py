@@ -4,10 +4,9 @@ import logging
 from contextlib import contextmanager
 from pathlib import Path
 
-from .config import DB_CONFIG, DB_SCHEMA, DB_TABLE, LOGGING_ROOT
+from .config import DB_CONFIG, DB_SCHEMA, DB_TABLE, LOGGING_ROOT, SQL_DIR
 
 logger = logging.getLogger(f"{LOGGING_ROOT}.database")
-SQL_DIR = Path(__file__).resolve().parent.parent / "sql"
 
 
 @contextmanager
@@ -73,7 +72,8 @@ def validate_sql_files(sql_files):
         if not sql_file.is_file():
             raise FileNotFoundError(f"Required SQL file not found: {sql_file}")
 
-def apply_transformations(transform_files):
+
+def apply_transformations(transform_files, db_schema, db_table, ingestion_timestamp):
     """Creates the staging schemas and views from this versioned SQL files."""
 
     # Get a list of all SQL files in the sql directory and sort them by name
@@ -91,10 +91,10 @@ def apply_transformations(transform_files):
                 logger.info(f"Applying SQL file {sql_file.name}")
                 statement = sql.SQL(sql_file.read_text(encoding="utf-8")).format(
                     raw_table=sql.SQL("{}.{}").format(
-                        sql.Identifier(DB_SCHEMA),
-                        sql.Identifier(DB_TABLE),
+                        sql.Identifier(db_schema),
+                        sql.Identifier(db_table),),
+                    ingestion_timestamp=sql.Literal(ingestion_timestamp)
                     )
-                )
                 cur.execute(statement)
 
     logger.info("SQL transformations applied successfully")

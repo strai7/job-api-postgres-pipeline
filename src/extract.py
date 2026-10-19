@@ -56,4 +56,5 @@ def fetch_all_jobs():
         pages.append(fetch_page(page_number))
 
     logger.info(f"Extraction process completed: Fetched {total_pages} pages of job results from the Adzuna API")
+    
     return pages

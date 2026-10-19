@@ -5,6 +5,8 @@ __pycache__/
 *$py.class
 logs/*.log
 tests/temp.py
+TO_DOs.txt
+orchestration/dags/incremental_dag.py # experimental DAG, not to be committed
 
 # C extensions
 *.so

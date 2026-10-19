@@ -2,8 +2,7 @@ from .extract import fetch_all_jobs
 from .database import reset_table, validate_sql_files, apply_transformations, validate_staged_jobs, upsert_jobs
 from .load import load_raw_pages
 from .logging_config import setup_logging
-from .config import LOGGING_ROOT, validate_config
-from .pipeline import TRANSFORMATION_FILES, UPSERT_FILES
+from .config import LOGGING_ROOT,TRANSFORMATION_FILES, UPSERT_FILES, validate_config
 import logging
 
 logger = logging.getLogger(f"{LOGGING_ROOT}.main")

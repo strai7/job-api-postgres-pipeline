@@ -1,12 +1,12 @@
 from psycopg2.extras import Json
 from psycopg2 import sql
-from .config import DB_SCHEMA, DB_TABLE, LOGGING_ROOT
+from .config import LOGGING_ROOT
 from .database import get_connection
 import logging
 
 logger = logging.getLogger(f"{LOGGING_ROOT}.load")
 
-def load_raw_pages(pages):
+def load_raw_pages(pages, DB_SCHEMA, DB_TABLE):
     """Load raw API response pages into Postgres as JSONB"""
 
     logger.info(f"Loading process started: Loading raw API response pages into Postgres table {DB_SCHEMA}.{DB_TABLE}")
