@@ -31,7 +31,8 @@ CREATE OR REPLACE VIEW stg.adzuna_jobs_extracted AS (
         -- geo / timestamps
         job ->> 'created' AS created,
         job ->> 'latitude' AS latitude,
-        job ->> 'longitude' AS longitude
+        job ->> 'longitude' AS longitude,
+        {ingestion_timestamp}::TIMESTAMP AS ingestion_timestamp
 
     FROM stg.adzuna_jobs_json
 );

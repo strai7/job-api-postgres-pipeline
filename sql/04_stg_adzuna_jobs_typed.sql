@@ -31,7 +31,8 @@ CREATE OR REPLACE VIEW stg.adzuna_jobs_typed AS (
         -- geo / timestamps
         NULLIF(created, '')::timestamptz AS created,
         NULLIF(latitude, '')::double precision AS latitude,
-        NULLIF(longitude, '')::double precision AS longitude
+        NULLIF(longitude, '')::double precision AS longitude,
+        ingestion_timestamp
 
     FROM stg.adzuna_jobs_extracted
 );

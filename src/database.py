@@ -2,13 +2,58 @@ import psycopg2
 from psycopg2 import sql
 import logging
 from contextlib import contextmanager
-from pathlib import Path
 
-from .config import DB_CONFIG, DB_SCHEMA, DB_TABLE, LOGGING_ROOT
-from .sql_pipeline_config import TRANSFORMATION_FILES, UPSERT_FILES
+from .config import APP_ID, APP_KEY, DB_CONFIG, DB_SCHEMA, DB_TABLE, LOGGING_ROOT, SQL_DIR
 
 logger = logging.getLogger(f"{LOGGING_ROOT}.database")
-SQL_DIR = Path(__file__).resolve().parent.parent / "sql"
+
+
+def apply_transformations(transform_files, db_schema, db_table, ingestion_timestamp):
+    """Creates the staging schemas and views from this versioned SQL files."""
+
+    # Get a list of all SQL files in the sql directory and sort them by name
+    transform_files = [SQL_DIR / file_name for file_name in transform_files]
+    logger.info(f"Applying {len(transform_files)} SQL transformation files")
+
+    if not transform_files:
+        raise ValueError(f"No sql transformation files configured. Directory:{SQL_DIR}. Files: {transform_files}")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+
+            # Apply each transformation SQL file in order, formatting the raw table name into the SQL statement
+            for sql_file in transform_files:
+                logger.info(f"Applying SQL file {sql_file.name}")
+                statement = sql.SQL(sql_file.read_text(encoding="utf-8")).format(
+                    raw_table=sql.SQL("{}.{}").format(
+                        sql.Identifier(db_schema),
+                        sql.Identifier(db_table),),
+                    ingestion_timestamp=sql.Literal(ingestion_timestamp)
+                    )
+                cur.execute(statement)
+
+    logger.info("SQL transformations applied successfully")
+
+
+def create_postgres_env(sql_files_paths):
+
+    sql_files = [SQL_DIR / file_name for file_name in sql_files_paths]
+
+    if not sql_files_paths:
+        raise ValueError(f"No sql upsert files configured. Directory:{SQL_DIR}. File paths: {sql_files_paths}")
+
+    logger.info(f"Creating postgres environment with {len(sql_files)} SQL files")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+
+            # Execute core table creation and upsert SQL in order
+            for sql_file in sql_files:
+                logger.info(f"Applying SQL file {sql_file.name}")
+                statement = sql_file.read_text(encoding="utf-8")
+                cur.execute(statement)
+
+    logger.info("Postgres environment created successfully")
 
 
 @contextmanager
@@ -31,73 +76,23 @@ def get_connection():
         logger.info("Connection to the Postgres database closed")
 
 
-def reset_table():
-    """Reset the table for storing raw API response pages."""
+def validate_config():
+    """ Fail fast if any required configuration is missing. """
 
-    # Set up logging
-    logger.info(f"Resetting table {DB_SCHEMA}.{DB_TABLE} for storing raw API response pages")
+    env_vars = {
+        "ADZUNA_APP_ID": APP_ID,
+        "ADZUNA_APP_KEY": APP_KEY,
+        "DB_HOST": DB_CONFIG["host"],
+        "DB_PORT": DB_CONFIG["port"],
+        "DB_NAME": DB_CONFIG["dbname"],
+        "DB_USER": DB_CONFIG["user"],
+        "DB_PASSWORD": DB_CONFIG["password"]
+    }
 
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(
-                    sql.Identifier(DB_SCHEMA)
-                )
-            )
-            cur.execute(
-                sql.SQL("DROP TABLE IF EXISTS {}.{} CASCADE").format(
-                    sql.Identifier(DB_SCHEMA),
-                    sql.Identifier(DB_TABLE),
-                )
-            )
-            cur.execute(
-                sql.SQL("""
-                    CREATE TABLE {}.{} (
-                        page_results JSONB NOT NULL
-                    )
-                """).format(
-                    sql.Identifier(DB_SCHEMA),
-                    sql.Identifier(DB_TABLE),
-                )
-            )
+    missing_vars = [var for var, value in env_vars.items() if not value]
 
-    logger.info(f"Table {DB_SCHEMA}.{DB_TABLE} reset successfully")
-
-
-def validate_sql_files():
-    """Validate that all required SQL files exist in the sql directory."""
-
-    logger.info(f"Validating existence of required SQL files in directory: {SQL_DIR}")
-    for filename in TRANSFORMATION_FILES + UPSERT_FILES:
-        sql_file = SQL_DIR / filename
-        if not sql_file.is_file():
-            raise FileNotFoundError(f"Required SQL file not found: {sql_file}")
-
-def apply_transformations():
-    """Creates the staging schemas and views from this versioned SQL files."""
-
-    # Get a list of all SQL files in the sql directory and sort them by name
-    transform_files = [SQL_DIR / file_name for file_name in TRANSFORMATION_FILES]
-    logger.info(f"Applying {len(transform_files)} SQL transformation files")
-
-    if not transform_files:
-        raise ValueError(f"No sql transformation files configured. Directory:{SQL_DIR}. Files: {TRANSFORMATION_FILES}")
-
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-
-            # Apply each transformation SQL file in order, formatting the raw table name into the SQL statement
-            for sql_file in transform_files:
-                logger.info(f"Applying SQL file {sql_file.name}")
-                statement = sql.SQL(sql_file.read_text(encoding="utf-8")).format(
-                    raw_table=sql.SQL("{}.{}").format(
-                        sql.Identifier(DB_SCHEMA),
-                        sql.Identifier(DB_TABLE),
-                    )
-                )
-                cur.execute(statement)
-
-    logger.info("SQL transformations applied successfully")
+    if missing_vars:
+        raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
 
 
 def validate_staged_jobs():
@@ -142,22 +137,12 @@ def validate_staged_jobs():
                 )
 
 
-def upsert_jobs():
+def validate_sql_files(sql_files):
+    """Validate that all required SQL files exist in the sql directory."""
 
-    sql_files = [SQL_DIR / file_name for file_name in UPSERT_FILES]
+    logger.info(f"Validating existence of required SQL files in directory: {SQL_DIR}")
 
-    if not sql_files:
-        raise ValueError(f"No sql upsert files configured. Directory:{SQL_DIR}. Files: {UPSERT_FILES}")
-
-    logger.info(f"Creating core jobs table and upserting jobs from typed table")
-
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-
-            # Execute core table creation and upsert SQL in order
-            for sql_file in sql_files:
-                logger.info(f"Applying SQL file {sql_file.name}")
-                statement = sql_file.read_text(encoding="utf-8")
-                cur.execute(statement)
-
-    logger.info("Jobs upserted successfully")
+    for filename in sql_files:
+        sql_file = SQL_DIR / filename
+        if not sql_file.is_file():
+            raise FileNotFoundError(f"Required SQL file not found: {sql_file}")

@@ -17,7 +17,8 @@ INSERT INTO core.jobs (
     salary_is_predicted,
     created,
     latitude,
-    longitude
+    longitude,
+    ingestion_timestamp
 ) SELECT
     job_id,
     job_title,
@@ -37,7 +38,8 @@ INSERT INTO core.jobs (
     salary_is_predicted,
     created,
     latitude,
-    longitude
+    longitude,
+    ingestion_timestamp
  FROM stg.adzuna_jobs_typed
     ON CONFLICT (job_id)
     DO UPDATE SET
@@ -58,4 +60,5 @@ INSERT INTO core.jobs (
         salary_is_predicted = EXCLUDED.salary_is_predicted,
         created = EXCLUDED.created,
         latitude = EXCLUDED.latitude,
-        longitude = EXCLUDED.longitude;
+        longitude = EXCLUDED.longitude,
+        last_updated = EXCLUDED.ingestion_timestamp
