@@ -60,5 +60,5 @@ INSERT INTO core.jobs (
         salary_is_predicted = EXCLUDED.salary_is_predicted,
         created = EXCLUDED.created,
         latitude = EXCLUDED.latitude,
-        longitude = EXCLUDED.longitude;
-        ingestion_timestamp = EXCLUDED.ingestion_timestamp
+        longitude = EXCLUDED.longitude,
+        last_updated = EXCLUDED.ingestion_timestamp

@@ -18,5 +18,6 @@ CREATE TABLE IF NOT EXISTS core.jobs (
     created TIMESTAMPTZ,
     latitude DOUBLE PRECISION,
     longitude DOUBLE PRECISION,
-    ingestion_timestamp TIMESTAMP
+    ingestion_timestamp TIMESTAMP,
+    last_updated TIMESTAMP
 );

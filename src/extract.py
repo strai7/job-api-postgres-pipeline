@@ -30,6 +30,13 @@ def fetch_page(page):
     url, params = build_request(page)
 
     response = requests.get(url, params=params, timeout=10)
+    print(
+        "HTTP status={}, elapsed={}, retry_after={}".format(
+            response.status_code,
+            response.elapsed.total_seconds(),
+            response.headers.get("Retry-After")
+    ))
+
     response.raise_for_status()
 
     return response.json()

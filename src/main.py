@@ -1,35 +1,25 @@
-from .extract import fetch_all_jobs
-from .database import reset_table, validate_sql_files, apply_transformations, validate_staged_jobs, upsert_jobs
-from .load import load_raw_pages
+from .database import create_postgres_env, validate_sql_files, validate_config
 from .logging_config import setup_logging
-from .config import LOGGING_ROOT,TRANSFORMATION_FILES, UPSERT_FILES, validate_config
+from .config import POSTGRES_ENV_FILES, LOGGING_ROOT
+
 import logging
 
 logger = logging.getLogger(f"{LOGGING_ROOT}.main")
 
 def main():
-    """Main function to run the job API pipeline."""
+    """Main function to set up posgres environment for the job API pipeline."""
     # Set up logging
     setup_logging()
-    logger.info("Starting job API pipeline")
-    sql_files = TRANSFORMATION_FILES + UPSERT_FILES
 
-    # Create the table, fetch and load all jobs, then build the staging views
+    logger.info("Starting Validation and Postgres Environment Setup for Job API Pipeline")
     try:
         validate_config()
-        validate_sql_files(sql_files)
-        reset_table()
-        pages = fetch_all_jobs()
-        load_raw_pages(pages)
-        apply_transformations(TRANSFORMATION_FILES)
-        validate_staged_jobs()
-        upsert_jobs(UPSERT_FILES)
+        validate_sql_files(POSTGRES_ENV_FILES)
+        create_postgres_env(POSTGRES_ENV_FILES)
 
     except Exception as e:
         logger.exception(f"An error occurred during the job API pipeline execution: {e}")
         raise
-
-    logger.info("Job API pipeline completed successfully")
 
 if __name__ == "__main__":
     main()
